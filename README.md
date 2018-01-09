@@ -11,6 +11,6 @@ Twitter also says that they "are working to make Twitter the best place to see a
 
 ## Operation
 
-This bot, which is @STFUDonnieBot on Twitter, watches the @realDonaldTrump account on Twitter. When that account tweets, this bot tweets a reply consisting of a GIF of Walter Sobcheck from *The Big Lebowski* saying "Shut the fuck up, Donny."
+This bot, which is <a rel="me author" href="https://twitter.com/STFUDonnyBot">@STFUDonnyBot</a> on Twitter, watches the <a rel="nofollow" href="https://twitter.com/realDonaldTrump">@realDonaldTrump</a> account on Twitter. When that account tweets, this bot tweets a reply consisting of a GIF of Walter Sobcheck from *The Big Lebowski* saying "Shut the fuck up, Donny."
 
 It is written in Python 3 and requires the [Tweepy](http://www.tweepy.org/) and [pid](https://pypi.python.org/pypi/pid/) modules, plus a few modules from [my own personal library](https://github.com/patrick-brian-mooney/python-personal-library/). See the code for details.
