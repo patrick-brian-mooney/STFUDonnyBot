@@ -14,7 +14,7 @@ GPL, either version 3 or (at your option) any later version. See the LICENSE
 file for details.
 """
 
-import glob, json, pprint, random, sys, time
+import glob, json, pprint, random, requests, sys, time
 
 import tweepy
 from tweepy.streaming import StreamListener                     # http://www.tweepy.org
@@ -58,7 +58,15 @@ def reply(original_tweet_data):
     tweetID = original_tweet_data['id']
     which_user = original_tweet_data['user']['screen_name']
     which_image = random.choice(glob.glob(image_directory + "*"))
-    return API.update_with_media(filename=which_image, status="@%s" % (which_user), in_reply_to_status_id=tweetID)
+    tweet_URL = 'https://twitter.com/%s/status/%s' % (which_user, tweetID)
+    ret = API.update_with_media(filename=which_image, status="@%s" % (which_user), in_reply_to_status_id=tweetID)
+    # Next, archive it in the Internet Archive
+    req = requests.get(tweet_URL)
+    for i in req.iter_content(chunk_size=100000): pass
+    # Now, add the archived URL to our own local archive.
+    with open('archives', mode='a') as archive_file:
+        archive_file.write('http://web.archive.org/web/*/' + tweet_URL + '\n')
+    return ret
 
 class TrumpListener(StreamListener):
     """Of all the people on Twitter, Donald Trump is probably the least worth listening to. So let's
