@@ -27,10 +27,10 @@ import pid                                                      # https://pypi.p
 import patrick_logger                                           # https://github.com/patrick-brian-mooney/python-personal-library/
 from patrick_logger import log_it
 import social_media as sm                                       # https://github.com/patrick-brian-mooney/python-personal-library/
-from social_media_auth import Trump_client, Trump_client_for_personal_account   # Unshared module that contains my authentication constants     # FIXME
+from social_media_auth import STFUDonnyBot_client               # Unshared module that contains my authentication constants
 
-consumer_key, consumer_secret = Trump_client['consumer_key'], Trump_client['consumer_secret']
-access_token, access_token_secret = Trump_client['access_token'], Trump_client['access_token_secret']
+consumer_key, consumer_secret = STFUDonnyBot_client['consumer_key'], STFUDonnyBot_client['consumer_secret']
+access_token, access_token_secret = STFUDonnyBot_client['access_token'], STFUDonnyBot_client['access_token_secret']
 
 # target_accounts = ['realDonaldTrump']
 target_accounts = {'98912248': 'patrick_mooney'}
@@ -60,8 +60,9 @@ except Exception as e:              # If it's not defined, try to import it.
 
 def reply(original_tweet_data):
     """#FIXME """
-    tweetId = original_tweet_data['id']
-    API.update_status('@%s %s' % (original_tweet_data['user']['id_str'], random.choice(image_URLs)),tweetId)
+    tweetID = original_tweet_data['id']
+    which_user = original_tweet_data['user']
+    sm.post_reply_tweet(random.choice(image_URLs), which_user, tweetID, API_instance=API)
 
 class TrumpListener(StreamListener):
     """Of all the people on Twitter, Donald Trump is probably the least worth listening to. So let's
