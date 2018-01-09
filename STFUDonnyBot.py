@@ -53,10 +53,15 @@ except Exception as e:              # If it's not defined, try to import it.
             log_it('WARNING: still got exception "%s"; defining by fiat instead' % e)
             ProtocolError = IncompleteRead
 
-def reply(original_tweet_data):
-    """#FIXME """
-    tweetID = original_tweet_data['id']
-    which_user = original_tweet_data['user']['screen_name']
+def reply(tweetID, which_user):
+    """Given a tweet to which the bot should reply, this function does three things:
+        1. Replies to it.
+        2. Archives the reply using the Internet Archive.
+        3. Adds the IArchive URL to a list of archived replies that this script has made.
+
+    TWEETID is the ID# of the tweet to which we're replying. WHICH_USER is the
+    username of the user who sent the tweet.
+     """
     which_image = random.choice(glob.glob(image_directory + "*"))
     tweet_URL = 'https://twitter.com/%s/status/%s' % (which_user, tweetID)
     ret = API.update_with_media(filename=which_image, status="@%s" % (which_user), in_reply_to_status_id=tweetID)
@@ -70,14 +75,14 @@ def reply(original_tweet_data):
 
 class TrumpListener(StreamListener):
     """Of all the people on Twitter, Donald Trump is probably the least worth listening to. So let's
-    create a bot to handle the drudgery for us.
+    create a bot to handle the drudgery of listening to him for us.
     """
     def on_data(self, data):
         try:
             data = json.loads(data)
             try:
                 if data['user']['id_str'] in target_accounts:       # If it's the account we're watching, reply to it.
-                    reply(data)
+                    reply(data['id'], data['user']['screen_name'])
             except KeyError:
                 log_it('INFO: we got minimal data again', 1)
                 log_it('... value of data is:\n\n%s\n\n' % pprint.pformat(data), 1)
