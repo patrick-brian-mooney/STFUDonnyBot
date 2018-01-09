@@ -14,7 +14,7 @@ GPL, either version 3 or (at your option) any later version. See the LICENSE
 file for details.
 """
 
-import json, pprint, random, sys, time
+import glob, json, pprint, random, sys, time
 
 import tweepy
 from tweepy.streaming import StreamListener                     # http://www.tweepy.org
@@ -24,9 +24,7 @@ from http.client import IncompleteRead
 
 import pid                                                      # https://pypi.python.org/pypi/pid/
 
-import patrick_logger                                           # https://github.com/patrick-brian-mooney/python-personal-library/
-from patrick_logger import log_it
-import social_media as sm                                       # https://github.com/patrick-brian-mooney/python-personal-library/
+from patrick_logger import log_it                               # https://github.com/patrick-brian-mooney/python-personal-library/
 from social_media_auth import STFUDonnyBot_client               # Unshared module that contains my authentication constants
 
 consumer_key, consumer_secret = STFUDonnyBot_client['consumer_key'], STFUDonnyBot_client['consumer_secret']
@@ -34,10 +32,7 @@ access_token, access_token_secret = STFUDonnyBot_client['access_token'], STFUDon
 
 # target_accounts = ['realDonaldTrump']
 target_accounts = {'98912248': 'patrick_mooney'}
-image_URLs = ['https://media.giphy.com/media/cdxGGMh7UDuAE/giphy.gif',                                                  # while bowling
-              'http://s2.quickmeme.com/img/1f/1fd3eb2d600dfff5506ff549f5fd58fc7949f4f56eea21a8ddd689b2a13eb1a5.jpg',    # out of your element
-              'https://media1.tenor.com/images/98e1c9a96042b4ea6fae90b43ebc9fa5/tenor.gif?itemid=5761606',              # at the theater
-              ]
+image_directory = 'STFU/'
 API = None      # This will be redefined as the Tweepy API object during startup.
 
 # OK, let's work around a problem that comes from the confluence of Debian's ancient packaging and rapid changes in Python's Requests package.
@@ -61,8 +56,9 @@ except Exception as e:              # If it's not defined, try to import it.
 def reply(original_tweet_data):
     """#FIXME """
     tweetID = original_tweet_data['id']
-    which_user = original_tweet_data['user']
-    sm.post_reply_tweet(random.choice(image_URLs), which_user, tweetID, API_instance=API)
+    which_user = original_tweet_data['user']['screen_name']
+    which_image = random.choice(glob.glob(image_directory + "*"))
+    return API.update_with_media(filename=which_image, status="@%s" % (which_user), in_reply_to_status_id=tweetID)
 
 class TrumpListener(StreamListener):
     """Of all the people on Twitter, Donald Trump is probably the least worth listening to. So let's
@@ -106,7 +102,7 @@ if __name__ == '__main__':
                     continue
                 except KeyboardInterrupt:
                     stream.disconnect()
-                    break
+                    raise
     except pid.PidFileError:
         log_it("Already running! Quitting ...", 0)
         sys.exit()
