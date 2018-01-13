@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Twitter recently announced that their normal rules about bullying and civility
-don't apply to the accounts of world leaders, this bot tests whether those
+don't apply to the accounts of world leaders. This bot tests whether those
 rules are also interpreted differently for people speaking back to bullying
 world leaders. In order to test this, it says something that, though perhaps
 not civil, is certainly something that needs to be said much more often.
 
 That is, STFUDonnyBot is a bot that waits for @realDonaldTrump to tweet, then
-replies with an image GIF of Walter Sobchek saying 'Shut the fuck up, Donny.'
+replies with an image GIF of John Goodman as Walter Sobchak in The Big Lebowski
+saying "Shut the fuck up, Donny."
 
 STFUDonnyBot is copyright 2018 by Patrick Mooney. It is released under the GNU
 GPL, either version 3 or (at your option) any later version. See the LICENSE
 file for details.
 """
 
-import glob, json, pprint, random, requests, sys, time
+import glob, json, os, pprint, random, requests, sys, time
 
 import tweepy
 from tweepy.streaming import StreamListener                     # http://www.tweepy.org
@@ -24,13 +25,16 @@ from http.client import IncompleteRead
 
 import pid                                                      # https://pypi.python.org/pypi/pid/
 
-from patrick_logger import log_it                               # https://github.com/patrick-brian-mooney/python-personal-library/
 from social_media_auth import STFUDonnyBot_client               # Unshared module that contains my authentication constants
+import patrick_logger                                           # https://github.com/patrick-brian-mooney/python-personal-library/
+from patrick_logger import log_it
+
+patrick_logger.verbosity_level = 2
 
 consumer_key, consumer_secret = STFUDonnyBot_client['consumer_key'], STFUDonnyBot_client['consumer_secret']
 access_token, access_token_secret = STFUDonnyBot_client['access_token'], STFUDonnyBot_client['access_token_secret']
 
-# target_accounts = ['realDonaldTrump']
+# target_accounts = {'25073877': 'realDonaldTrump'}
 target_accounts = {'98912248': 'patrick_mooney'}
 image_directory = 'STFU/'
 API = None      # This will be redefined as the Tweepy API object during startup.
@@ -49,26 +53,35 @@ except Exception as e:              # If it's not defined, try to import it.
             log_it('WARNING: still got exception "%s"; trying from xmlrpclib instead' % e)
             from xmlrpclib import ProtocolError
             log_it('NOTE: successfully imported from xmlprclib')
-        except Exception as e:      # If we can't import it, define it so the main loop's Except clause doesn't crash on every exception.
+        except Exception as e:      # If we can't import it, define it by fiat, so the main loop's Except clause doesn't crash on every exception.
             log_it('WARNING: still got exception "%s"; defining by fiat instead' % e)
             ProtocolError = IncompleteRead
 
+def IArchive_it(url):
+    """Saves the document at URL to the Internet Archive's ... well, archive."""
+    req = requests.get('http://web.archive.org/web/*/' + url)
+    for i in req.iter_content(chunk_size=100000): pass
+
 def reply(tweetID, which_user):
-    """Given a tweet to which the bot should reply, this function does three things:
+    """Given a tweet to which the bot should reply, this function does four things:
         1. Replies to it.
         2. Archives the reply using the Internet Archive.
         3. Adds the IArchive URL to a list of archived replies that this script has made.
+        4. Uses the IArchive to archive a copy of the bot's profile page on Twitter.
 
     TWEETID is the ID# of the tweet to which we're replying. WHICH_USER is the
     username of the user who sent the tweet.
-     """
+    """
+    log_it("OK, we're responding to tweet ID# %s from user %s" % (tweetID, which_user), 1)    
     which_image = random.choice(glob.glob(image_directory + "*"))
     tweet_URL = 'https://twitter.com/%s/status/%s' % (which_user, tweetID)
     ret = API.update_with_media(filename=which_image, status="@%s" % (which_user), in_reply_to_status_id=tweetID)
-    # Next, archive it in the Internet Archive
-    req = requests.get(tweet_URL)
-    for i in req.iter_content(chunk_size=100000): pass
-    # Now, add the archived URL to our own local archive.
+
+    log_it("Responded with image '%s'; archiving at the Internet Archive ... " % os.path.basename(which_image), 2)
+    IArchive_it(tweet_URL)
+    IArchive_it('https://twitter.com/STFUDonnyBot/with_replies')
+    
+    log_it("Saving archived URL to local list", 3)
     with open('archives', mode='a') as archive_file:
         archive_file.write('http://web.archive.org/web/*/' + tweet_URL + '\n')
     return ret
@@ -79,17 +92,20 @@ class TrumpListener(StreamListener):
     """
     def on_data(self, data):
         try:
-            data = json.loads(data)
+            log_it("Twitter gave us the following data:\n\n" + data, 4)            
+            decoded_data = json.loads(data)
             try:
-                if data['user']['id_str'] in target_accounts:       # If it's the account we're watching, reply to it.
-                    reply(data['id'], data['user']['screen_name'])
+                if decoded_data['user']['id_str'] in target_accounts:       # If it's the account we're watching, reply to it.
+                    reply(decoded_data['id'], decoded_data['user']['screen_name'])
+                else:
+                    log_it("WARNING: Twitter is giving us irrelevant data again:\n\n" + data, 2)
             except KeyError:
                 log_it('INFO: we got minimal data again', 1)
-                log_it('... value of data is:\n\n%s\n\n' % pprint.pformat(data), 1)
+                log_it('... value of data is:\n\n%s\n\n' % data, 1)
         except BaseException as e:
             log_it('ERROR: \n  Exception is:' + pprint.pformat(e), -1)
             log_it('  Value of data is:', -1)
-            log_it(pprint.pformat(data), -1)
+            log_it(data, -1)
             raise
         return True
 
