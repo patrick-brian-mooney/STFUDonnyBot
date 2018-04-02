@@ -3,7 +3,7 @@
 
 ## Overview and Rationale
 
-Twitter recently [said](https://blog.twitter.com/official/en_us/topics/company/2017/world-leaders-and-twitter.html) that normal rules about civility and bullying don't apply to Donald Trump. It seems to me like it's time for a test to see how far that dispensation extends: is it a special privilege for Trump (and perhaps other world leaders)? Or have the normal rules of discourse about *speaking back* to world leaders also been suspended?
+Twitter recently [said](https://blog.twitter.com/official/en_us/topics/company/2017/world-leaders-and-twitter.html) that normal rules about civility and bullying don't apply to "world leaders", by which I take them to have meant, given the context of the conversation at the time, Donald Trump. It seems to me like it's time for a test to see how far that dispensation extends: is it a special privilege for Trump (and perhaps other world leaders)? Or have the normal rules of discourse about *speaking back* to world leaders also been suspended?
 
 All Twitter really says is that world leaders on Twitter have special status because of "their outsized impact on our society" and that their reason for allowing world leaders to continue to behave badly on Twitter is because doing anything else "would certainly hamper necessary discussion around their words and actions." That is to say: this behavior is only acceptable because that's a necessary precondition of people engaging in a conversation about it. This bot attempts to help contribute to that very conversation by repeatedly saying something that definitely needs to be said over and over.
 

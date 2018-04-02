@@ -36,8 +36,11 @@ access_token, access_token_secret = STFUDonnyBot_client['access_token'], STFUDon
 
 # target_accounts = {'25073877': 'realDonaldTrump'}
 target_accounts = {'98912248': 'patrick_mooney'}
-image_directory = 'STFU/'
 API = None      # This will be redefined as the Tweepy API object during startup.
+
+base_dir = '/STFUDonnyBot'
+image_directory = os.path.join(base_dir, 'STFU/')
+URL_archive_file = os.path.join(base_dir, 'archives')
 
 # OK, let's work around a problem that comes from the confluence of Debian's ancient packaging and rapid changes in Python's Requests package.
 try:
@@ -64,9 +67,10 @@ def IArchive_it(url):
 
 def reply(tweetID, which_user):
     """Given a tweet to which the bot should reply, this function does four things:
-        1. Replies to it.
+        1. Replies to that tweet.
         2. Archives the reply using the Internet Archive.
-        3. Adds the IArchive URL to a list of archived replies that this script has made.
+        3. Adds the IArchive URL to a list of archived replies that this script
+           has made.
         4. Uses the IArchive to archive a copy of the bot's profile page on Twitter.
 
     TWEETID is the ID# of the tweet to which we're replying. WHICH_USER is the
@@ -79,10 +83,10 @@ def reply(tweetID, which_user):
 
     log_it("Responded with image '%s'; archiving at the Internet Archive ... " % os.path.basename(which_image), 2)
     IArchive_it(tweet_URL)
-    IArchive_it('https://twitter.com/STFUDonnyBot/with_replies')
+    IArchive_it('http://twitter.com/STFUDonnyBot/with_replies')
     
     log_it("Saving archived URL to local list", 3)
-    with open('archives', mode='a') as archive_file:
+    with open(URL_archive_file, mode='a') as archive_file:
         archive_file.write('http://web.archive.org/web/*/' + tweet_URL + '\n')
     return ret
 
@@ -95,7 +99,7 @@ class TrumpListener(StreamListener):
             log_it("Twitter gave us the following data:\n\n" + data, 4)            
             decoded_data = json.loads(data)
             try:
-                if decoded_data['user']['id_str'] in target_accounts:       # If it's the account we're watching, reply to it.
+                if decoded_data['user']['id_str'] in target_accounts:       # If it's (one of) the account(s) we're watching, reply to it.
                     reply(decoded_data['id'], decoded_data['user']['screen_name'])
                 else:
                     log_it("WARNING: Twitter is giving us irrelevant data again:\n\n" + data, 2)
