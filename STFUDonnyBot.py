@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.5
 # -*- coding: utf-8 -*-
 """Twitter recently announced that their normal rules about bullying and civility
 don't apply to the accounts of world leaders. This bot tests whether those
@@ -25,11 +25,16 @@ from http.client import IncompleteRead
 
 import pid                                                      # https://pypi.python.org/pypi/pid/
 
-from social_media_auth import STFUDonnyBot_client               # Unshared module that contains my authentication constants
-import patrick_logger                                           # https://github.com/patrick-brian-mooney/python-personal-library/
-from patrick_logger import log_it
 
-patrick_logger.verbosity_level = 2
+with open('/social_media_auth.json', encoding='utf-8') as auth_file:
+    STFUDonnyBot_client = json.loads(auth_file.read())['STFUDonnyBot_client']
+
+
+verbosity_level = 2
+
+def log_it(what, debug_level=1):
+    if debug_level <= verbosity_level:
+        print(what)
 
 consumer_key, consumer_secret = STFUDonnyBot_client['consumer_key'], STFUDonnyBot_client['consumer_secret']
 access_token, access_token_secret = STFUDonnyBot_client['access_token'], STFUDonnyBot_client['access_token_secret']
